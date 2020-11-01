@@ -39,21 +39,29 @@ for year in years:
             and ("antidumping" in abstract or "anti-dumping" in abstract)
         ):
             # print(title)
-            title_split = title.split(';')
+            title_split = title.split(";")
+
+            def _make_first_capital(text):
+                return text[0].upper() + text[1:]
+
+            def _parse_product_countries(index_for_product_countries):
+                product_countries = title_split[index_for_product_countries].lower()
+                product = product_countries.split("from")[0].strip()
+                product = _make_first_capital(product)
+                countries = product_countries.split("from")[1].strip()
+                countries = countries.split(",")
+                countries = countries[:-1] + countries[-1].split(" and")
+                countries = [
+                    _make_first_capital(country.strip())
+                    for country in countries
+                    if len(country.strip()) > 0
+                ]
+                return product, countries
+
             try:
-                product_countries = title_split[0].lower()
-                product = product_countries.split('from')[0].strip()
-                countries = product_countries.split('from')[1].strip()
-                countries = countries.split(',')
-                countries = countries[:-1] + countries[-1].split(' and')
-                countries = [country.strip() for country in countries if len(country.strip()) > 0]
+                product, countries = _parse_product_countries(0)
             except IndexError:
-                product_countries = title_split[1].lower()
-                product = product_countries.split('from')[0].strip()
-                countries = product_countries.split('from')[1]
-                countries = countries.split(',')
-                countries = countries[:-1] + countries[-1].split(' and')
-                countries = [country.strip() for country in countries if len(country.strip()) > 0]
+                product, countries = _parse_product_countries(1)
             count += 1
             print(product, countries)
             df_investigation.loc[len(df_investigation)] = row
@@ -62,4 +70,4 @@ for year in years:
     total += count
 print("total: ", total)
 if __name__ == "__main__":
-        pass
+    pass
