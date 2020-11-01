@@ -18,14 +18,24 @@ end = 2020
 years = sorted([i for i in range(start, end + 1)], reverse=True)
 
 total = 0
+
+cols = [
+    "document_number",
+    "publication_date",
+    "product_name",
+    "hs_codes",
+    "countries",
+    "html_url",
+    "document_title",
+]
+df_investigation = pd.DataFrame(columns=cols)
+
 for year in years:
     url = f"https://www.federalregister.gov/documents/search?conditions%5Bpublication_date%5D%5Byear%5D={year}&conditions%5Bterm%5D={search_term_url}&format=csv"
     content = requests.get(url).content
     df = pd.read_csv(io.StringIO(content.decode("utf-8")))
 
-    cols = list(df.columns.values)
-
-    df_investigation = pd.DataFrame(columns=cols)
+    # cols = list(df.columns.values)
     count = 0
     for index, row in df.iterrows():
         title = row["title"]
@@ -39,7 +49,7 @@ for year in years:
             and "investigation" in abstract
             and ("antidumping" in abstract or "anti-dumping" in abstract)
         ):
-            hs_codes = re.findall(r'[0-9]{4}\.[0-9]{2}\.[0-9]{2}', abstract)
+            hs_codes = re.findall(r"[0-9]{4}\.[0-9]{2}\.[0-9]{2}", abstract)
             title_split = title.split(";")
 
             def _make_first_capital(text):
@@ -64,12 +74,33 @@ for year in years:
             except IndexError:
                 product, countries = _parse_product_countries(1)
             count += 1
-            print(product, countries, hs_codes, row['html_url'])
-            print(cols)
-            df_investigation.loc[len(df_investigation)] = row
+            print(
+                product,
+                countries,
+                hs_codes,
+                row["html_url"],
+                row["publication_date"],
+                title,
+                row["document_number"],
+            )
+            data = [
+                row["document_number"],
+                row["publication_date"],
+                product,
+                hs_codes,
+                countries,
+                row["html_url"],
+                title,
+            ]
+            # print(cols)
+            df_investigation.loc[len(df_investigation)] = data
             pass
     print(year, count)
     total += count
 print("total: ", total)
+df_investigation.to_csv(
+    "./Investigation/FR_AD_Institution_of_Investigations.csv", index=False
+)
+
 if __name__ == "__main__":
     pass
