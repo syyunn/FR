@@ -1,6 +1,7 @@
 import requests
 import pandas as pd
 import io
+import re
 
 search_term = "institution of investigations antidumping"
 
@@ -12,9 +13,9 @@ def replace_white_space_w_plus(text):
 
 search_term_url = replace_white_space_w_plus(search_term)
 year = 1990
-start = 2020
+start = 2012
 end = 2020
-years = [i for i in range(start, end + 1)]
+years = sorted([i for i in range(start, end + 1)], reverse=True)
 
 total = 0
 for year in years:
@@ -38,7 +39,7 @@ for year in years:
             and "investigation" in abstract
             and ("antidumping" in abstract or "anti-dumping" in abstract)
         ):
-            # print(title)
+            hs_codes = re.findall(r'[0-9]{4}\.[0-9]{2}\.[0-9]{2}', abstract)
             title_split = title.split(";")
 
             def _make_first_capital(text):
@@ -63,7 +64,8 @@ for year in years:
             except IndexError:
                 product, countries = _parse_product_countries(1)
             count += 1
-            print(product, countries)
+            print(product, countries, hs_codes, row['html_url'])
+            print(cols)
             df_investigation.loc[len(df_investigation)] = row
             pass
     print(year, count)
