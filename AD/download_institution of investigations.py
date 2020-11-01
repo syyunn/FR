@@ -38,8 +38,24 @@ for year in years:
             and "investigation" in abstract
             and ("antidumping" in abstract or "anti-dumping" in abstract)
         ):
-            print(abstract)
+            # print(title)
+            title_split = title.split(';')
+            try:
+                product_countries = title_split[0].lower()
+                product = product_countries.split('from')[0].strip()
+                countries = product_countries.split('from')[1].strip()
+                countries = countries.split(',')
+                countries = countries[:-1] + countries[-1].split(' and')
+                countries = [country.strip() for country in countries if len(country.strip()) > 0]
+            except IndexError:
+                product_countries = title_split[1].lower()
+                product = product_countries.split('from')[0].strip()
+                countries = product_countries.split('from')[1]
+                countries = countries.split(',')
+                countries = countries[:-1] + countries[-1].split(' and')
+                countries = [country.strip() for country in countries if len(country.strip()) > 0]
             count += 1
+            print(product, countries)
             df_investigation.loc[len(df_investigation)] = row
             pass
     print(year, count)
